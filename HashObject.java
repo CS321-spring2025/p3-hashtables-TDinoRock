@@ -5,7 +5,7 @@ public class HashObject {
 
     public HashObject(Object key) {
         this.key = key;
-        this.frequencyCount = 1;
+        this.frequencyCount = 0;
         this.probeCount = 0;
     }
 
@@ -41,10 +41,6 @@ public class HashObject {
 
     @Override
     public String toString() {
-        return "HashObject{" +
-                "key=" + key +
-                ", frequencyCount=" + frequencyCount +
-                ", probeCount=" + probeCount +
-                '}';
+        return (getKey() + " " + frequencyCount + " " + probeCount);
     }
 }

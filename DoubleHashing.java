@@ -11,43 +11,31 @@ public class DoubleHashing extends Hashtable {
     public int h(Object key, int probe) {
         int hash1 = positiveMod(key.hashCode(), capacity);
         int hash2 = 1 + positiveMod(key.hashCode(), (capacity - 2));
-        return (hash1 + probe * hash2) % capacity;
+        return positiveMod(hash1 + (probe * hash2), capacity);
     }
 
     @Override
     public void insert(HashObject obj, int debugLevel) {
-        int probe = 0;
         int index;
+        int startingProbeAmount = totalProbes;
         while (true) {
-            index = h(obj.getKey(), probe);
+            index = h(obj.getKey(), obj.getProbeCount());
             if (table[index] == null) {
                 table[index] = obj;
-                totalElements++;
-                totalProbes += probe + 1;
+                numTableElements++;
                 break;
-            } else if (table[index].equals(obj)) {
+            }
+            else if (table[index].equals(obj)) {
                 table[index].incrementFrequencyCount();
                 duplicateCount++;
-                totalProbes += probe + 1;
+                totalProbes = startingProbeAmount;
                 break;
             }
-            probe++;
+            obj.incrementProbeCount();
+            totalProbes++;
+            //System.out.println(index);
         }
-    }
-
-    @Override
-    public Object search(Object key) {
-        int probe = 0;
-        int index;
-        while (true) {
-            index = h(key, probe);
-            if (table[index] == null) {
-                return null;
-            } else if (table[index].getKey().equals(key)) {
-                return table[index];
-            }
-            probe++;
-        }
+        totalElements++;
     }
 
     protected int positiveMod (int dividend, int divisor) {

@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.Date;
 import java.util.Scanner;
 
 public class HashtableExperiment {
@@ -20,6 +22,8 @@ public class HashtableExperiment {
             loadFactor = Double.parseDouble(args[1]);
             if (args.length == 3) {
                 debugLevel = Integer.parseInt(args[2]);
+            } else {
+                debugLevel = 0;
             }
         } catch (NumberFormatException e) {
             printUsage();
@@ -34,26 +38,39 @@ public class HashtableExperiment {
         int tableSize = TwinPrimeGenerator.generateTwinPrime(95500, 96000);
         System.out.println("HashtableExperiment: Found a twin prime table capacity: " + tableSize);
 
-        Hashtable linearProbingTable = new LinearProbing(tableSize, loadFactor);
-        Hashtable doubleHashingTable = new DoubleHashing(tableSize, loadFactor);
+        Hashtable linearHash = new LinearProbing(tableSize, loadFactor);
+        Hashtable doubleHash = new DoubleHashing(tableSize, loadFactor);
 
         switch (dataSource) {
             case 1:
                 System.out.println("HashtableExperiment: Input: Random Numbers   Loadfactor: " + loadFactor);
-                insertRandomNumbers(linearProbingTable, doubleHashingTable, tableSize, debugLevel);
+                insertRandomNumbers(linearHash, doubleHash, debugLevel);
                 break;
             case 2:
                 System.out.println("HashtableExperiment: Input: Date Value as Long   Loadfactor: " + loadFactor);
-                insertDateValues(linearProbingTable, doubleHashingTable, tableSize, debugLevel);
+                insertDateValues(linearHash, doubleHash, debugLevel);
                 break;
             case 3:
                 System.out.println("HashtableExperiment: Input: Word-List   Loadfactor: " + loadFactor);
-                insertWordList(linearProbingTable, doubleHashingTable, tableSize, debugLevel);
+                insertWordList(linearHash, doubleHash, debugLevel);
                 break;
         }
 
-        printResults(linearProbingTable, "Linear Probing");
-        printResults(doubleHashingTable, "Double Hashing");
+        switch (debugLevel) {
+            case 1:
+                printResults(linearHash, "Linear Probing");
+                printResults(doubleHash, "Double Hashing");
+                break;
+            case 2:
+                printResults(linearHash, "Linear Probing");
+                printResults(doubleHash, "Double Hashing");
+                break;
+            case 3:
+                for (int i = 0; i < tableSize; i++) {
+                    System.out.println("table[" + i + "]" + linearHash.toString());
+                }
+                break;
+        }
     }
 
     private static void printUsage() {
@@ -67,43 +84,62 @@ public class HashtableExperiment {
         System.out.println("               2 ==> print debugging output for each insert");
     }
 
-    private static void insertRandomNumbers(Hashtable linearProbingTable, Hashtable doubleHashingTable, int tableSize, int debugLevel) {
+    private static void insertRandomNumbers(Hashtable linearHash, Hashtable doubleHash, int debugLevel) {
         Random random = new Random();
-        for (int i = 0; i < tableSize; i++) {
+        while (linearHash.getInsertedElements() <= linearHash.tableLoadFactor()) {
             int number = random.nextInt();
-            linearProbingTable.insert(new HashObject(number), debugLevel);
-            doubleHashingTable.insert(new HashObject(number), debugLevel);
+            linearHash.insert(new HashObject(number), debugLevel);
+        }
+        while (doubleHash.getInsertedElements() <= doubleHash.tableLoadFactor()) {
+            int number = random.nextInt();
+            doubleHash.insert(new HashObject(number), debugLevel);
         }
     }
 
-    private static void insertDateValues(Hashtable linearProbingTable, Hashtable doubleHashingTable, int tableSize, int debugLevel) {
-        long currentTime = System.currentTimeMillis();
-        for (int i = 0; i < tableSize; i++) {
-            long dateValue = currentTime + i;
-            linearProbingTable.insert(new HashObject(dateValue), debugLevel);
-            doubleHashingTable.insert(new HashObject(dateValue), debugLevel);
+    private static void insertDateValues(Hashtable linearHash, Hashtable doubleHash, int debugLevel) {
+        long dateValue = new Date().getTime();
+        while (linearHash.getInsertedElements() <= linearHash.tableLoadFactor()) {
+            dateValue += 1000;
+            Date date = new Date(dateValue);
+            linearHash.insert(new HashObject(date), debugLevel);
+        }
+        while (doubleHash.getInsertedElements() <= doubleHash.tableLoadFactor()) {
+            dateValue += 1000;
+            Date date = new Date(dateValue);
+            doubleHash.insert(new HashObject(date), debugLevel);
         }
     }
 
-    private static void insertWordList(Hashtable linearProbingTable, Hashtable doubleHashingTable, int tableSize, int debugLevel) {
+    private static void insertWordList(Hashtable linearHash, Hashtable doubleHash, int debugLevel) {
         Scanner scanner;
+        ArrayList<String> wordList = new ArrayList<>();
         try {
             scanner = new Scanner(new File("word-list.txt"));
-            while(scanner.hasNext()) {
+            while (scanner.hasNext()) {
                 String word = scanner.next();
-                linearProbingTable.insert(new HashObject(word), debugLevel);
-                doubleHashingTable.insert(new HashObject(word), debugLevel);
+                wordList.add(word);
             }
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
         scanner.close();
+
+        while (linearHash.getInsertedElements() <= linearHash.tableLoadFactor()) {
+            int index = (int) (Math.random() * wordList.size());
+            linearHash.insert(new HashObject(index), debugLevel);
+        }
+        while (doubleHash.getInsertedElements() <= doubleHash.tableLoadFactor()) {
+            int index = (int) (Math.random() * wordList.size());
+            doubleHash.insert(new HashObject(index), debugLevel);
+        }
     }
 
     private static void printResults(Hashtable table, String method) {
-        System.out.println("        Using " + method);
-        System.out.println("HashtableExperiment: size of hash table is " + table.getSize());
-        System.out.println("        Inserted " + table.getTotalElements() + " elements, of which " + table.getDuplicateCount() + " were duplicates");
+        System.out.println("\n        Using " + method);
+        System.out.println("HashtableExperiment: size of hash table is " + table.tableLoadFactor());
+        System.out.println("        Inserted " + table.getTotalElements() + " elements, of which "
+                + table.getDuplicateCount() + " were duplicates");
         System.out.println("        Avg. no. of probes = " + table.getAverageProbes());
     }
+
 }

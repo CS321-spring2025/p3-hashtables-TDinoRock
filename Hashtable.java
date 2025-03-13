@@ -1,15 +1,27 @@
 public abstract class Hashtable {
     protected int size;
     protected int capacity;
+    protected int numTableElements;
     protected double loadFactor;
     protected int totalElements;
     protected int duplicateCount;
     protected int totalProbes;
 
+    public Hashtable() {
+        this.size = 0;
+        this.capacity = 0;
+        this.numTableElements = 0;
+        this.loadFactor = 0;
+        this.totalElements = 0;
+        this.duplicateCount = 0;
+        this.totalProbes = 0;
+    }
+
     public Hashtable(int capacity, double loadFactor) {
+        this.size = (int) Math.ceil(capacity * loadFactor);
         this.capacity = capacity;
+        this.numTableElements = 0;
         this.loadFactor = loadFactor;
-        this.size = (int) (capacity * loadFactor);
         this.totalElements = 0;
         this.duplicateCount = 0;
         this.totalProbes = 0;
@@ -19,10 +31,16 @@ public abstract class Hashtable {
 
     public abstract void insert(HashObject obj, int debugLevel);
 
-    public abstract Object search(Object key);
+    public int tableLoadFactor() {
+        return size;
+    }
 
     public int getSize() {
-        return size;
+        return capacity;
+    }
+
+    public int getInsertedElements() {
+        return numTableElements;
     }
 
     public int getTotalElements() {
