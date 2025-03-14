@@ -6,6 +6,7 @@ public abstract class Hashtable {
     protected int totalElements;
     protected int duplicateCount;
     protected int totalProbes;
+    protected HashObject[] hashObject;
 
     public Hashtable() {
         this.size = 0;
@@ -25,11 +26,50 @@ public abstract class Hashtable {
         this.totalElements = 0;
         this.duplicateCount = 0;
         this.totalProbes = 0;
+        this.hashObject = new HashObject[capacity];
     }
 
     public abstract int h(Object key, int probe);
 
-    public abstract void insert(HashObject obj, int debugLevel);
+    public void insert(HashObject obj, int debugLevel) {
+        int index;
+        int startingProbeAmount = totalProbes;
+        while (true) {
+            index = h(obj.getKey(), obj.getProbeCount());
+            if (hashObject[index] == null) {
+                hashObject[index] = obj;
+                numTableElements++;
+                obj.incrementProbeCount();
+                totalProbes++;
+                break;
+            }
+            else if (hashObject[index].equals(obj)) {
+                hashObject[index].incrementFrequencyCount();
+                duplicateCount++;
+                totalProbes = startingProbeAmount;
+                break;
+            }
+            obj.incrementProbeCount();
+            totalProbes++;
+        }
+        totalElements++;
+    }
+
+    public HashObject search(HashObject obj) {
+        int index = 0;
+        while (index < this.capacity) {
+            index = h(obj.getKey(), index);
+            if (hashObject[index].equals(obj)) {
+                return hashObject[index];
+            }
+            index++;
+        }
+        return null;
+    }
+
+    public HashObject getAtIndex(int index) {
+        return hashObject[index];
+    }
 
     public int tableLoadFactor() {
         return size;
@@ -52,6 +92,6 @@ public abstract class Hashtable {
     }
 
     public double getAverageProbes() {
-        return (double) totalProbes / totalElements;
+        return (double) totalProbes / numTableElements;
     }
 }

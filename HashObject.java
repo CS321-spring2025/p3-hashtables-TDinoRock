@@ -5,7 +5,7 @@ public class HashObject {
 
     public HashObject(Object key) {
         this.key = key;
-        this.frequencyCount = 0;
+        this.frequencyCount = 1;
         this.probeCount = 0;
     }
 
@@ -33,7 +33,7 @@ public class HashObject {
     public boolean equals(Object key) {
         if (key instanceof HashObject) {
             HashObject object = (HashObject) key;
-            return object.getKey() == key;
+            return object.getKey().equals(this.key);
         } else {
             return false;
         }
