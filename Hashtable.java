@@ -41,12 +41,18 @@ public abstract class Hashtable {
                 numTableElements++;
                 obj.incrementProbeCount();
                 totalProbes++;
+                if (debugLevel == 2) {
+                    System.out.println("Inserted: " + obj.toString() + " at index " + index);
+                }
                 break;
             }
             else if (hashObject[index].equals(obj)) {
                 hashObject[index].incrementFrequencyCount();
                 duplicateCount++;
                 totalProbes = startingProbeAmount;
+                if (debugLevel == 2) {
+                    System.out.println("Duplicate: " + obj.toString() + " at index " + index);
+                }
                 break;
             }
             obj.incrementProbeCount();

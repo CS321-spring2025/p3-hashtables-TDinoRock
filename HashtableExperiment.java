@@ -1,9 +1,10 @@
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Random;
 import java.util.Date;
-import java.util.Scanner;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.PrintWriter;
 
 public class HashtableExperiment {
@@ -71,16 +72,12 @@ public class HashtableExperiment {
                 dumpToFile("doubleHash.txt", doubleHash);
                 break;
             case 2:
-                for (int i = 0; i < tableSize; i++) {
-                    HashObject obj1 = linearHash.hashObject[i];
-                    if (obj1 != null) {
-                        System.out.println(obj1.toString());
-                    }
-                    HashObject obj2 = doubleHash.hashObject[i];
-                    if (obj2 != null) {
-                        System.out.println(obj2.toString());
-                    }
-                }
+                printResults(linearHash, "Linear Probing");
+                System.out.println("HashtableExperiment: Saved dump of hash table");
+                printResults(doubleHash, "Double Hashing");
+                System.out.println("HashtableExperiment: Saved dump of hash table");
+                dumpToFile("linearHash.txt", linearHash);
+                dumpToFile("doubleHash.txt", doubleHash);
                 break;
         }
     }
@@ -116,18 +113,27 @@ public class HashtableExperiment {
     }
 
     private static void insertWordList(Hashtable linearHash, Hashtable doubleHash, int debugLevel) {
-        Scanner scanner;
-        try {
-            scanner = new Scanner(new File("word-list.txt"));
-            while (scanner.hasNext() && linearHash.getInsertedElements()+1 < linearHash.tableLoadFactor()) {
-                String word = scanner.next();
-                linearHash.insert(new HashObject(word), debugLevel);
-                doubleHash.insert(new HashObject(word), debugLevel);
+        try (BufferedReader reader = new BufferedReader(new FileReader("word-list.txt"))) {
+            while (linearHash.getInsertedElements() < linearHash.tableLoadFactor()) {
+                String word;
+                try {
+                    word = reader.readLine();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                if (word != null) {
+                    linearHash.insert(new HashObject(word), debugLevel);
+                    doubleHash.insert(new HashObject(word), debugLevel);
+                }
+                else {
+                    break;
+                }
             }
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        scanner.close();
     }
 
     private static void printResults(Hashtable table, String method) {
